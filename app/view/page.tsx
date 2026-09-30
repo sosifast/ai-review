@@ -125,7 +125,7 @@ export default function ViewPage() {
       )}
 
       {/* Analysis Overlay Layer */}
-      {status === 'analyzing' && images.length > 0 && (
+      {status === 'analyzing' && (
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center pointer-events-none">
           {/* Scanning lines */}
           <div className="absolute inset-0 overflow-hidden">
@@ -154,7 +154,7 @@ export default function ViewPage() {
       )}
 
       {/* Results Overlay Layer */}
-      {status === 'done' && data && images.length > 0 && (
+      {status === 'done' && data && (
         <div className="absolute bottom-0 left-0 right-0 z-20 bg-gradient-to-t from-black via-black/80 to-transparent pt-32 pb-16 px-16 animate-fade-up">
           <div className="max-w-7xl mx-auto flex items-end justify-between">
             <div>
