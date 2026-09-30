@@ -12,6 +12,8 @@ type AnalysisResult = {
   komentar: string;
 };
 
+import Pusher from 'pusher-js';
+
 export default function ViewPage() {
   const [status, setStatus] = useState<'idle' | 'analyzing' | 'done' | 'error'>('idle');
   const [data, setData] = useState<AnalysisResult | null>(null);
@@ -27,11 +29,7 @@ export default function ViewPage() {
 
       if (storedStatus) setStatus(storedStatus);
       if (storedData) {
-        try {
-          setData(JSON.parse(storedData));
-        } catch {
-          // ignore
-        }
+        try { setData(JSON.parse(storedData)); } catch { /* ignore */ }
       } else {
         setData(null);
       }
@@ -52,15 +50,30 @@ export default function ViewPage() {
       }
     };
 
-    // Initial load
     handleStorageChange();
-
     window.addEventListener('storage', handleStorageChange);
     const interval = setInterval(handleStorageChange, 1000);
+
+    // Pusher integration
+    const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY || '', {
+      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER || '',
+    });
+    const channel = pusher.subscribe('monitor-channel');
+    
+    channel.bind('status-update', (payload: any) => {
+      setStatus(payload.status);
+      if (payload.data) {
+        setData(payload.data);
+      } else {
+        setData(null);
+      }
+    });
 
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       clearInterval(interval);
+      channel.unbind_all();
+      channel.unsubscribe();
     };
   }, []);
 
