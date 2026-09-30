@@ -45,14 +45,28 @@ export default function ViewPage() {
         }
       } else if (storedSingleImage) {
         setImages([storedSingleImage]);
-      } else {
-        setImages([]);
       }
     };
 
+    const fetchApiImages = async () => {
+      try {
+        const res = await fetch('/api/image');
+        const json = await res.json();
+        if (json.imagesBase64 && Array.isArray(json.imagesBase64) && json.imagesBase64.length > 0) {
+          setImages(json.imagesBase64);
+        }
+      } catch (e) {
+        console.error('Failed to fetch images from API', e);
+      }
+    };
+
+    fetchApiImages();
     handleStorageChange();
     window.addEventListener('storage', handleStorageChange);
-    const interval = setInterval(handleStorageChange, 1000);
+    const interval = setInterval(() => {
+      handleStorageChange();
+      fetchApiImages();
+    }, 2000);
 
     // Pusher integration
     const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY || '', {
@@ -66,6 +80,9 @@ export default function ViewPage() {
         setData(payload.data);
       } else {
         setData(null);
+      }
+      if (payload.status === 'idle' || payload.status === 'analyzing') {
+        fetchApiImages();
       }
     });
 

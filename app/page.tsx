@@ -133,6 +133,16 @@ export default function Home() {
           console.warn('Could not save images to localStorage (might be too large)', e);
         }
       }
+      
+      try {
+        await fetch('/api/image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imagesBase64 })
+        });
+      } catch (e) {
+        console.error('Failed to sync images to API', e);
+      }
     } catch (e) {
       console.error(e);
     }
@@ -210,6 +220,16 @@ export default function Home() {
         } catch (e) {
           console.warn('Could not save images to localStorage (might be too large)', e);
         }
+      }
+
+      try {
+        await fetch('/api/image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imagesBase64 })
+        });
+      } catch (e) {
+        console.error('Failed to sync images to API', e);
       }
 
       try {
