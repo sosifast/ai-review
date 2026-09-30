@@ -21,6 +21,19 @@ export default function ViewPage() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
+    // Clear storage on mount/refresh to start from the beginning
+    localStorage.removeItem('monitorStatus');
+    localStorage.removeItem('monitorData');
+    localStorage.removeItem('monitorImages');
+    localStorage.removeItem('monitorImage');
+    
+    // Clear images in API as well
+    fetch('/api/image', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ imagesBase64: [] })
+    }).catch(console.error);
+
     const handleStorageChange = () => {
       const storedStatus = localStorage.getItem('monitorStatus') as any;
       const storedData = localStorage.getItem('monitorData');

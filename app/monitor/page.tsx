@@ -106,8 +106,8 @@ export default function MonitorPage() {
         <div className="absolute inset-0 flex flex-col items-center justify-center opacity-20 animate-[pulse_4s_ease-in-out_infinite]">
            <div className="flex items-center scale-150">
              <div>
-               <span className="font-black text-5xl tracking-[0.2em] uppercase">YOK</span>
-               <span className="font-bold text-5xl text-orange-400 tracking-wide"> Entertainment</span>
+               <span className="font-black text-5xl tracking-[0.2em] uppercase">Wait</span>
+               <span className="font-bold text-5xl text-orange-400 tracking-wide"> Data</span>
              </div>
            </div>
         </div>
