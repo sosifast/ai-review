@@ -83,6 +83,26 @@ export default function Home() {
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const updateMonitor = async (status: string, data: any = null) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('monitorStatus', status);
+      if (data) {
+        localStorage.setItem('monitorData', JSON.stringify(data));
+      } else {
+        localStorage.removeItem('monitorData');
+      }
+    }
+    try {
+      await fetch('/api/pusher', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status, data }),
+      });
+    } catch (e) {
+      console.error('Failed to sync to pusher', e);
+    }
+  };
+
   const syncImagesToStorage = async (filesList: File[]) => {
     try {
       const base64Promises = filesList.map(file => new Promise<string>((resolve, reject) => {
@@ -124,10 +144,7 @@ export default function Home() {
       const urls = filesArray.map(file => URL.createObjectURL(file));
       setSelectedImages(urls);
       setAnalysisResult(null);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('monitorStatus', 'idle');
-        localStorage.removeItem('monitorData');
-      }
+      updateMonitor('idle');
       syncImagesToStorage(filesArray);
     }
   };
@@ -143,10 +160,7 @@ export default function Home() {
       const urls = filesArray.map(file => URL.createObjectURL(file));
       setSelectedImages(urls);
       setAnalysisResult(null);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('monitorStatus', 'idle');
-        localStorage.removeItem('monitorData');
-      }
+      updateMonitor('idle');
       syncImagesToStorage(filesArray);
     }
   };
@@ -155,8 +169,8 @@ export default function Home() {
     if (selectedImages.length === 0 || !fileInputRef.current?.files?.length) return;
     setIsAnalyzing(true);
     setAnalysisResult(null);
+    updateMonitor('analyzing');
     if (typeof window !== 'undefined') {
-      localStorage.setItem('monitorStatus', 'analyzing');
       // Set a temporary image for the monitor to show scanning effect
       const file = fileInputRef.current?.files?.[0];
       if (file) {
@@ -210,33 +224,21 @@ export default function Home() {
             const cleaned = data.result.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
             const parsed = JSON.parse(cleaned);
             setAnalysisResult(parsed);
-            if (typeof window !== 'undefined') {
-              localStorage.setItem('monitorData', JSON.stringify(parsed));
-              localStorage.setItem('monitorStatus', 'done');
-            }
+            updateMonitor('done', parsed);
           } catch {
             const errResult = { rating: 0, desain: 0, warna: 0, kakiKaki: 0, struktur: 0, komentar: data.result };
             setAnalysisResult(errResult);
-            if (typeof window !== 'undefined') {
-              localStorage.setItem('monitorData', JSON.stringify(errResult));
-              localStorage.setItem('monitorStatus', 'error');
-            }
+            updateMonitor('error', errResult);
           }
         } else {
           const errResult = { rating: 0, desain: 0, warna: 0, kakiKaki: 0, struktur: 0, komentar: data.error || 'Gagal menganalisis.' };
           setAnalysisResult(errResult);
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('monitorData', JSON.stringify(errResult));
-            localStorage.setItem('monitorStatus', 'error');
-          }
+          updateMonitor('error', errResult);
         }
       } catch {
         const errResult = { rating: 0, desain: 0, warna: 0, kakiKaki: 0, struktur: 0, komentar: 'Koneksi error.' };
         setAnalysisResult(errResult);
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('monitorData', JSON.stringify(errResult));
-          localStorage.setItem('monitorStatus', 'error');
-        }
+        updateMonitor('error', errResult);
       }
       setIsAnalyzing(false);
     } catch {

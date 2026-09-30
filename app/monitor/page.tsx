@@ -59,37 +59,44 @@ function StarRating({ rating }: { rating: number }) {
 }
 
 
+import Pusher from 'pusher-js';
+
 export default function MonitorPage() {
   const [status, setStatus] = useState<'idle' | 'analyzing' | 'done' | 'error'>('idle');
   const [data, setData] = useState<AnalysisResult | null>(null);
 
   useEffect(() => {
+    // Keep localStorage for backward compatibility or local usage
     const handleStorageChange = () => {
       const storedStatus = localStorage.getItem('monitorStatus') as any;
       const storedData = localStorage.getItem('monitorData');
-
       if (storedStatus) setStatus(storedStatus);
       if (storedData) {
-        try {
-          setData(JSON.parse(storedData));
-        } catch {
-          // ignore
-        }
+        try { setData(JSON.parse(storedData)); } catch { /* ignore */ }
+      }
+    };
+    handleStorageChange();
+    window.addEventListener('storage', handleStorageChange);
+
+    // Pusher integration
+    const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY || '', {
+      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER || '',
+    });
+    const channel = pusher.subscribe('monitor-channel');
+    
+    channel.bind('status-update', (payload: any) => {
+      setStatus(payload.status);
+      if (payload.data) {
+        setData(payload.data);
       } else {
         setData(null);
       }
-    };
-
-    // Initial load
-    handleStorageChange();
-
-    window.addEventListener('storage', handleStorageChange);
-    // As a fallback for same-tab updates (though Monitor is usually a different tab)
-    const interval = setInterval(handleStorageChange, 1000);
+    });
 
     return () => {
       window.removeEventListener('storage', handleStorageChange);
-      clearInterval(interval);
+      channel.unbind_all();
+      channel.unsubscribe();
     };
   }, []);
 
