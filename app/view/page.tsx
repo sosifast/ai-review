@@ -10,6 +10,7 @@ type AnalysisResult = {
   kakiKaki: number;
   struktur: number;
   komentar: string;
+  participantName?: string;
 };
 
 import Pusher from 'pusher-js';
@@ -190,7 +191,14 @@ export default function ViewPage() {
             <div>
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-2 h-10 bg-gradient-to-b from-green-400 to-green-600 rounded-full shadow-[0_0_15px_rgba(74,222,128,0.5)]" />
-                <h2 className="text-5xl font-black text-white tracking-widest uppercase drop-shadow-lg">Analysis Complete</h2>
+                <div>
+                  <h2 className="text-5xl font-black text-white tracking-widest uppercase drop-shadow-lg">Analysis Complete</h2>
+                  {data.participantName && (
+                    <p className="text-2xl font-bold text-orange-400 font-mono tracking-wider uppercase mt-1">
+                      Peserta: {data.participantName}
+                    </p>
+                  )}
+                </div>
               </div>
               <p className="text-xl text-zinc-400 font-mono italic max-w-2xl leading-relaxed">&quot;{data.komentar}&quot;</p>
             </div>
